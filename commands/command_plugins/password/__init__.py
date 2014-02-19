@@ -43,13 +43,6 @@ except ImportError:
             return md5.new()
 
 
-__config_keys__ = {
-    "parser": "json",
-    "provider": "metadata-service",
-    "data_keys": "password"
-}
-
-
 class PasswordError(Exception):
     """
     Class for password command exceptions
@@ -191,12 +184,12 @@ def set_password(user, password):
     raise PasswordError((500, "Unknown password file format"))
 
 
-@commands.command_add('password', __config_keys__)
-def password_cmd(data):
+@commands.command_add('password', 'password')
+def password_cmd(data_values):
     """ change password """
     try:
         set_password('root', data)
     except PasswordError, e:
         return e.get_response()
 
-    return (0, "")
+    return True

@@ -16,8 +16,6 @@
 #     under the License.
 #
 
-import datahandler
-
 import logging
 from common import agent_logger
 
@@ -25,16 +23,27 @@ from common import agent_logger
 cmd_list = {}
 
 
-def command_add(cmd_name, config_key=None):
+def command_add(cmd_name, data_keys=[]):
     def wrap(_func):
+        agent_logger.log(logging.error, str(data_keys))
         if cmd_name in cmd_list.keys():
             agent_logger.log(logging.error,
-                         "%s couldn't be added to feature list." % cmd_name)
+                         "%s already exists in feature list. Duplicacy." %
+                             cmd_name)
+
         else:
-            agent_logger.log(logging.info,
-                         "%s added to feature list." % cmd_name)
+            _data_keys = data_keys
+            if isinstance(_data_keys, str):
+                _data_keys = _data_keys.split()
+            with open("/tmp/pylog", "a") as fyl:
+                fyl.write(repr(_data_keys))
+
             cmd_list[cmd_name] = {"func": _func,
-                                  "config_key": config_key}
+                                  "data_keys": _data_keys}
+
+            agent_logger.log(logging.info,
+                             "%s added to feature list with keys: %s." %
+                             (cmd_name, _data_keys))
 
         return _func
     return wrap
@@ -42,31 +51,24 @@ def command_add(cmd_name, config_key=None):
 
 def _dict_value_or_none(dictionary, key):
     if isinstance(dictionary, dict):
-        if key in dictionary.keys():
+        if dictionary.has_key(key):
             return dictionary[key]
     return None
 
 
-def run(cmd):
+def run(cmd, get_value_for):
     try:
-        config_keys = cmd_list[cmd]["config_key"]
-        parser, provider, data_keys = (
-            _dict_value_or_none(config_keys, "parser"),
-            _dict_value_or_none(config_keys, "provider"),
-            _dict_value_or_none(config_keys, "data_keys")
-        )
-        _datahandler = datahandler.DataHandler(parser, provider)
+        data_keys = cmd_list[cmd]["data_keys"]
         data_values = {}
-        if isinstance(data_keys, str):
-            data_values[data_keys] = _datahandler.get_value_for(data_keys)
-        elif isinstance(data_keys, list):
-            for _data_key in data_keys:
-                data_values[_data_key] = _datahandler.get_value_for(_data_key)
+        for _data_key in data_keys:
+            data_values[_data_key] = get_value_for(_data_key)
+        agent_logger.log(logging.info, ">>>> %s" % repr(data_keys))
+        agent_logger.log(logging.info, ">>>> %s" % repr(data_values))
 
-        config_result = cmd_list[cmd]["func"](data)
+        config_result = cmd_list[cmd]["func"](data_values)
 
         agent_logger.log(logging.info, "Running '%s'" % cmd,
-                         data=data, result=config_result)
+                         data=data_values, result=config_result)
         return config_result
 
     except Exception, e:

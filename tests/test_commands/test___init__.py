@@ -9,28 +9,24 @@ class TestCommands(object):
     @classmethod
     def setup_class(klass):
         """This method is run once for each class before any tests are run"""
-        @commands.command_add("is_true")
-        def is_true(bool):
-            if bool == True:
+        @commands.command_add("is_true", "foo")
+        def is_true(data_values):
+            if data_values["foo"] == True:
                 return True
             return False
 
-        @commands.command_add("is_false", {"foo": "bar"})
-        def is_not_true(bool):
-            return not is_true(bool)
+        @commands.command_add("is_false", ["foo", "bar"])
+        def is_not_true(data_values):
+            return not is_true({"foo": data_values["bar"]})
+
+        @commands.command_add("blaah")
+        def blaah(data_values):
+            """Just Blaah! Can't use data_values cuz no data_keys. """
+            return "blaah"
 
         klass.istrue = staticmethod(is_true)
         klass.isfalse = staticmethod(is_not_true)
-
-    @classmethod
-    def teardown_class(klass):
-        """This method is run once for each class _after_ all tests are run"""
-
-    def setUp(self):
-        """This method is run once before _each_ test method is executed"""
-
-    def teardown(self):
-        """This method is run once after _each_ test method is executed"""
+        klass.blaah = staticmethod(blaah)
 
     def test_init(self):
         assert_equal(isinstance(commands.cmd_list, dict), True)
@@ -39,11 +35,16 @@ class TestCommands(object):
         cmd_list = commands.cmd_list
         assert_equal(cmd_list.has_key("istrue"), False)
 
-        assert_equal(cmd_list["is_true"]["func"](True), self.istrue(True))
-        assert_equal(cmd_list["is_true"]["config_key"], None)
+        assert_equal(cmd_list["is_true"]["func"]({"foo": True}),
+                     self.istrue({"foo": True}))
+        assert_equal(cmd_list["is_true"]["data_keys"], ["foo"])
 
-        assert_equal(cmd_list["is_false"]["func"](True), self.isfalse(True))
-        assert_equal(cmd_list["is_false"]["config_key"], {"foo": "bar"})
+        assert_equal(cmd_list["is_false"]["func"]({"bar": True}),
+                     self.isfalse({"bar": True}))
+        assert_equal(cmd_list["is_false"]["data_keys"], ["foo", "bar"])
+
+        assert_equal(cmd_list["blaah"]["func"]({}), self.blaah({}))
+        assert_equal(cmd_list["blaah"]["data_keys"], [])
 
     def test__dict_value_or_none(self):
         _dict = {"existing_key": "existing_value", "foo": "nosey-test"}
@@ -58,12 +59,12 @@ class TestCommands(object):
         assert_equal(_call2_result, _call2_expected_result)
 
     def test_run(self):
-        commands.datahandler.DataHandler = FakeDataHandler
         run = commands.run
-        assert_equal(run("is_true"), True)
-        assert_equal(run("is_false"), False)
-        assert_equal(run("no_cmd"), None)
-        pass
+        fakedata = FakeDataHandler("parser", "provider")
+        assert_equal(run("is_true", fakedata.get_value_for), True)
+        assert_equal(run("is_false", fakedata.get_value_for), False)
+        assert_equal(run("blaah", fakedata.get_value_for), "blaah")
+        assert_equal(run("no_cmd", fakedata.get_value_for), None)
 
 
 class FakeDataHandler(object):
