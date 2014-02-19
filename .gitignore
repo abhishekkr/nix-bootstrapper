@@ -34,3 +34,16 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+temp
+*.cfg
+tests/shell_tests/shunit2/*
+*.swo
+*.swp
+*.un~
+*.suo
+.DS_Store
+obj
+*~
+*.tmp
+.venv
+.config
