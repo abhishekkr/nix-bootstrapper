@@ -37,6 +37,7 @@ nosetests.xml
 temp
 *.cfg
 tests/shell_tests/shunit2/*
+*.swn
 *.swo
 *.swp
 *.un~
