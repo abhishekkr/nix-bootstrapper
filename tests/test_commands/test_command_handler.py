@@ -5,7 +5,7 @@ from commands import command_handler
 from nose.tools import assert_equal
 
 
-class TestCommandsHandler(object):
+class TestCommandHandler(object):
 
     def test_run_command(self):
         command_handler.commands.cmd_list = { "foo1": lambda x: not x }

@@ -2,6 +2,8 @@
 
 import commands
 
+import tests.fakers
+
 from nose.tools import assert_equal
 
 
@@ -28,7 +30,7 @@ class TestCommands(object):
         klass.isfalse = staticmethod(is_not_true)
         klass.blaah = staticmethod(blaah)
 
-    def test_init(self):
+    def test_cmd_list(self):
         assert_equal(isinstance(commands.cmd_list, dict), True)
 
     def test_command_add(self):
@@ -60,16 +62,8 @@ class TestCommands(object):
 
     def test_run(self):
         run = commands.run
-        fakedata = FakeDataHandler("parser", "provider")
+        fakedata = tests.fakers.FakeDataHandler("parser", "provider")
         assert_equal(run("is_true", fakedata.get_value_for), True)
         assert_equal(run("is_false", fakedata.get_value_for), False)
         assert_equal(run("blaah", fakedata.get_value_for), "blaah")
         assert_equal(run("no_cmd", fakedata.get_value_for), None)
-
-
-class FakeDataHandler(object):
-    def __init__(self, parser, provider):
-        pass
-
-    def get_value_for(self, key):
-        return True
