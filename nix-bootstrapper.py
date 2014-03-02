@@ -17,13 +17,17 @@
 #
 
 import sys
+
 from commands import command_handler
+import data_handler
 
 
 if __name__ == "__main__":
+    # need to make DataHandler pass custom parser/provider from some config
+    _data_handler = data_handler.DataHandler()
     if len(sys.argv) == 1:
-        command_handler.run_command("password")
+        command_handler.run_command("password", _data_handler.get_value_for)
     else:
         for _cmd in sys.argv[2:]:
-            command_handler.run_command(_cmd)
+            command_handler.run_command(_cmd, _data_handler.get_value_for)
 
