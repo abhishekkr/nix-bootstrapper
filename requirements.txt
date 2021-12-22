@@ -1,2 +1,2 @@
-PyInstaller~> 3.6
-pycrypto==2.6.1
+pyinstaller>=3.6
+pycryptodome==3.12.0
